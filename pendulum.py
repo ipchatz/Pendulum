@@ -1,1 +1,47 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Feb 28 18:10:02 2021
 
+@author: yanni
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+#from scipy import optimize
+
+m = 1 #bob mass (kg)
+l = 1 #string length (m)
+g = 9.807 #gravitational acceleration (ms^-2)
+b = 0 #damping const
+dt = 0.01 #time delta (s)
+t_end = 1 #simulation time (s)
+theta = np.pi / 4 #initial angle (rad)
+omega = 0 # intial angular velocity (rads^-1)
+alpha = 0 #initial angular acceleration (rads^-2)
+T = np.arange(0, t_end, dt) #flow of time
+x_positions = [] #a list to store the x-path of the pendulum bob
+y_positions = [] #a list to store the y-path of the pendulum bob
+
+def genGraph(x, y, title_x = "", title_y = ""): #generates a specified graph
+    p = np.poly1d(fit) #generates a linear fit
+    if title_x != "": plt.xlabel(title_x) #adds an x-axis title if given
+    if title_y != "": plt.ylabel(title_y) #adds a y=axis title if given
+    plt.plot(x, y) #plots the data
+    plt.show() #shows the graph
+
+def simPendulum(theta, omega, t, l, m, b, g):
+    alpha = -b / m * omega - g / l * np.sin(theta)
+    return alpha
+
+for t in T:
+    x = l * np.sin(theta)
+    y = l * np.cos(theta)
+
+    alpha = simPendulum(theta, omega, t, l, m, b, g)
+    omega += alpha
+    theta += omega
+
+    x_positions.append(x)
+    y_positions.append(y)
+
+genGraph(x_positions, y_positions, "x", "y")
