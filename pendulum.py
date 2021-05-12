@@ -6,6 +6,7 @@ Created on Sun Feb 28 18:10:02 2021
 """
 
 import numpy as np
+from random import choice
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
@@ -29,13 +30,14 @@ def genGraph(x, y, title_x = "", title_y = ""): #generates a specific graph
     plt.plot(x, y) #plots the pendulum position data
     #plt.gca().set_aspect("equal") #sets the aspect ratio to unity
     plt.grid() #adds gridlines to the graph
+    plt.savefig("pendulum" + str(choice(T)) + ".png") #saves the figure
     plt.show() #shows the pendulum graph
 
 def simPendulum(init, t, l, m, b, g): #simulates the pendulum motion
     theta, omega = init #initial state of the pendulum
     alpha = -b / m * omega - g / l * np.sin(theta) #equation of motion
-    cont = [omega, alpha] #the new state of the position of the pendulum
-    return cont #returns the differential equation solution
+    cont = [omega, alpha] #the derived state of the position of the pendulum
+    return cont #returns the first derivative of the equation
 
 
 ####################   Differential Pendulum Simulation   ####################
@@ -48,7 +50,7 @@ genGraph(T, theta, "t", "theta") #plots the angle against time graph
 genGraph(T, omega, "t", "omega") #plots the angular velocity graph
 
 x = l * np.sin(theta) #obtains the x positions from the solution
-y = l * np.cos(theta) #obtains the y positions from the solution
+y = -l * np.cos(theta) #obtains the y positions from the solution
 
 genGraph(x, y, "x", "y") #plots the pendulum position graph
 genGraph(T, x, "t", "x") #plots the x positions against time graph
@@ -79,19 +81,4 @@ for t in T: #iterates through all of the time-steps
 genGraph(x_positions, y_positions, "x", "y") #plots the pendulum position
 genGraph(T, x_positions, "t", "x") #plots the x-position against time
 genGraph(T, y_positions, "t", "y") #plots the height against time graph
-'''
-
-''' ####################   Euler Simulation   ####################
-for t in T:
-    x = l * np.sin(theta)
-    y = l * np.cos(theta)
-
-    alpha = simPendulum(theta, omega, t, l, m, b, g)
-    omega += alpha
-    theta += omega
-
-    x_positions.append(x)
-    y_positions.append(y)
-
-genGraph(x_positions, y_positions, "x", "y")
 '''
