@@ -8,25 +8,26 @@ Created on Sun Feb 28 18:13:06 2021
 import numpy as np
 from random import choice
 import matplotlib.pyplot as plt
+from matplotlib import animation
 from scipy.integrate import odeint
 
-m1 = m2 = 1 #bob masses (kg)
-l1 = l2 = 1 #string lengths (m)
-k1 = k2 = 0.42 #damping constants
+m1, m2 = 1, 1 #bob masses (kg)
+l1, l2 = 1, 1 #string lengths (m)
+k1, k2 = 0, 0 #damping constants
 g = 9.807 #gravitational acceleration (ms^-2)
 dt = 0.01 #time delta (s)
 t_end = 5 #simulation time (s)
-theta1_0 = np.pi / 2 #initial angle 1 (rad)
-theta2_0 = -np.pi / 2 #initial angle 2 (rad)
+theta1_0 = 179 * np.pi / 180 #initial angle 1 (rad)
+theta2_0 = -169 * np.pi / 180 #initial angle 2 (rad)
 theta1 = theta1_0 #angular displacement 1 (rad)
 theta2 = theta2_0 #angular displacement 2 (rad)
 omega1_0 = 0 #intial angular velocity 1 (rads^-1)
 omega2_0 = 0 #intial angular velocity 2 (rads^-1)
 omega1 = omega1_0 #angular velocity 1 (rads^-1)
 omega2 = omega2_0 #angular velocity 2 (rads^-1)
-alpha1 = alpha2 = 0 #initial angular accelerations (rads^-2)
+alpha1, alpha2 = 0, 0 #initial angular accelerations (rads^-2)
 inits = [theta1_0, theta2_0, omega1_0, omega2_0] #intial conditions list
-T = np.arange(0, t_end, dt) #an array to store the flow of time
+T = np.arange(0.0, t_end, dt) #an array to store the flow of time
 s = lambda x : np.sin(x) #lambda function for sine
 c = lambda x : np.cos(x) #lambda function for cosine
 
@@ -34,9 +35,9 @@ def genGraph(x, y, title_x = "", title_y = ""): #generates a specific graph
     if title_x != "": plt.xlabel(title_x) #adds an x-axis title if given
     if title_y != "": plt.ylabel(title_y) #adds a y=axis title if given
     plt.plot(x, y) #plots the dendulum position data
-    #plt.gca().set_aspect("equal") #sets the aspect ratio to unity
+    plt.gca().set_aspect("equal", adjustable = "box") #sets unity aspect ratio
     plt.grid() #adds gridlines to the graph
-    plt.savefig("dendulum" + str(choice(T)) + ".png") #saves the figure
+    #plt.savefig("dendulum" + str(choice(T)) + ".png") #saves the figure
     plt.show() #shows the dendulum graph
 
 def simDeudulum(init, t, l1, l2, m1, m2, g): #simulates the dendulum motion
@@ -110,27 +111,81 @@ def simDDendulum(init, t, l1, l2, m1, m2, g, k1, k2): #simulates the dendulum mo
     cont = [omega1, omega2, alpha1, alpha2] #the derived state of the dendulum
     return cont #returns the first derivatives of the equations
 
+def main(simFunction): #main function to run the simulation
+    if simFunction == simDDendulum: #checks if the sim function is damped
+        sol = odeint(simDDendulum, inits, T, (l1, l2, m1, m2, g, k1, k2))
+
+    else: #otherwise run the standard simulation without damping
+        sol = odeint(simFunction, inits, T, (l1, l2, m1, m2, g))
+
+    theta1 = sol[:, 0] #obtains the theta 1 values from the solution
+    theta2 = sol[:, 1] #obtains the theta 2 values from the solution
+    omega1 = sol[:, 2] #obtains the omega 1 values from the solution
+    omega2 = sol[:, 3] #obtains the omega 2 values from the solution
+
+    x1 = l1 * np.sin(theta1) #obtains the x1 positions from the solution
+    y1 = -l1 * np.cos(theta1) #obtains the y1 positions from the solution
+    x2 = x1 + l2 * np.sin(theta2) #obtains the x2 positions from the solution
+    y2 = y1 - l2 * np.cos(theta2) #obtains the y2 positions from the solution
+
+    plt.plot(x2, y2) #plot the position of the outer pendulum bob
+    genGraph(x1, y1, "x", "y") #plots the dendulum position graph
+
 sol = odeint(simDDendulum, inits, T, (l1, l2, m1, m2, g, k1, k2)) #solve
-#sol = odeint(simDendulum, inits, T, (l1, l2, m1, m2, g)) #solve equations
 
 theta1 = sol[:, 0] #obtains the theta values from the solution
 theta2 = sol[:, 1] #obtains the theta values from the solution
 omega1 = sol[:, 2] #obtains the omega values from the solution
 omega2 = sol[:, 3] #obtains the omega values from the solution
 
-genGraph(T, theta1, "t", "theta1") #plots the angle against time graph
-genGraph(T, theta2, "t", "theta2") #plots the angle against time graph
-genGraph(T, omega1, "t", "omega1") #plots the angular velocity graph
-genGraph(T, omega2, "t", "omega2") #plots the angular velocity graph
+#genGraph(T, theta1, "t", "theta1") #plots the angle against time graph
+#genGraph(T, theta2, "t", "theta2") #plots the angle against time graph
+#genGraph(T, omega1, "t", "omega1") #plots the angular velocity graph
+#genGraph(T, omega2, "t", "omega2") #plots the angular velocity graph
 
 x1 = l1 * np.sin(theta1) #obtains the x1 positions from the solution
 y1 = -l1 * np.cos(theta1) #obtains the y1 positions from the solution
 x2 = x1 + l2 * np.sin(theta2) #obtains the x2 positions from the solution
 y2 = y1 - l2 * np.cos(theta2) #obtains the y2 positions from the solution
 
-genGraph(x1, y1, "x1", "y1") #plots the dendulum position graph
-genGraph(T, x1, "t", "x1") #plots the x positions against time graph
-genGraph(T, y1, "t", "y1") #plots the height against time graphs
-genGraph(x2, y2, "x2", "y2") #plots the dendulum position graph
-genGraph(T, x2, "t", "x2") #plots the x positions against time graph
-genGraph(T, y2, "t", "y2") #plots the height against time graphs
+#genGraph(x1, y1, "x1", "y1") #plots the dendulum position graph
+#genGraph(T, x1, "t", "x1") #plots the x positions against time graph
+#genGraph(T, y1, "t", "y1") #plots the height against time graphs
+#genGraph(x2, y2, "x2", "y2") #plots the dendulum position graph
+#genGraph(T, x2, "t", "x2") #plots the x positions against time graph
+#genGraph(T, y2, "t", "y2") #plots the height against time graphs
+
+#plt.plot(x2, y2) #plot sthe position of the outer pendulum bob
+#genGraph(x1, y1, "x", "y") #plots the dendulum position graph
+
+for n in range(len(theta1)): #iterates through the inner theta values
+    if np.absolute(theta1[n]) > np.pi: #checks if the value exceeds pi
+        print(n, theta1[n], T[n]) #prints the flip values
+        break #stops iterating because the first flip has been found
+
+for n in range(len(theta2)): #iterates through the outer theta values
+    if np.absolute(theta2[n]) > np.pi: #checks if a flip has occurred
+        print(n, theta2[n], T[n]) #outputs the flip values
+        break #stops the iteration since the first flip has been found
+
+funcs = [simDeudulum, simDDendulum] #a list to store the simulation functions
+for simFunc in funcs: #iterates through each of the functions in the list
+    main(simFunc) #runs each simulation function for the initial values
+
+fig = plt.figure() #creates a figure to plot the graph animation
+ax = fig.add_subplot(111, autoscale_on = False, xlim=(-2, 2), ylim = (-2, 2))
+ax.grid() #adds gridlines, x-axis and y-axis limits
+ax.set_aspect("equal", adjustable = "box") #sets the axes to unity
+line, = ax.plot([], [], "o-", lw = 2) #creates the double line variable
+
+def init(): #initialisation function for the background of each frame
+    line.set_data([], []) #initialises the dendulum simulation data
+    return line, #returns the initial background
+
+def animate(i): #animation function for each individual frame
+    line.set_data([0, x1[i], x2[i]], [0, y1[i], y2[i]]) #sets the frame data
+    return line, #returns the updated frame data 
+
+anim = animation.FuncAnimation(fig, animate, int(t_end/dt), init, blit=True)
+#anim.save("dandulum" + str(choice(T)) + ".gif", fps=30) #saves the gif
+plt.show() #outputs the animated graph of the dendulum simulation
